@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LEON VASARI — FILM ARCHIVE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://images.higgs.ai" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Noto+Sans+JP:wght@500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@800&text=%E6%98%A0%E7%94%BB%E3%81%AE%E8%A8%98%E6%86%B6&display=block" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #ECE8E0;
+      --sheet: #F3F0EA;
+      --ink: #141414;
+      --muted: #6D6A63;
+      --cobalt: #1F3FB0;
+      --rule: rgba(20, 20, 20, .9);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      --H: min(47vh, 33vw);
+      --cy: 41%;
+      --sans: "Inter Tight", "Noto Sans JP", system-ui, sans-serif;
+      --serif: "Newsreader", Georgia, serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    @media (pointer: fine) {
+      html, body, button, a {
+        cursor: none;
+      }
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      outline: none;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .lbl {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 10.5px;
+      line-height: 1;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 21px;
+      padding: 0 8px;
+      border: 1px solid var(--rule);
+    }
+
+    /* Probe for exact --H pixel measurement */
+    #h-probe {
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 1px;
+      height: var(--H);
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    /* Paper grain */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: .6;
+      background-size: 220px 220px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.45 0 0 0 0 0.42 0 0 0 0 0.38 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    /* Halftone kanji */
+    .kanji {
+      position: fixed;
+      z-index: 1;
+      pointer-events: none;
+      writing-mode: vertical-rl;
+      font-family: "Noto Sans JP", sans-serif;
+      font-weight: 800;
+      font-size: min(19vh, 12.5vw);
+      line-height: 1.02;
+      letter-spacing: .02em;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(64, 82, 138, .55) 0 36%, transparent 40%),
+        linear-gradient(rgba(110, 122, 160, .26), rgba(110, 122, 160, .26));
+      background-size: 3px 3px, 100% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    .kanji.left { left: 2.4vw; top: 13vh; }
+    .kanji.right { right: 2.4vw; top: 9vh; }
+
+    /* Top bar */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 76px;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--cobalt);
+      z-index: 30;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-line {
+      width: 40px;
+      height: 1px;
+      background: currentColor;
+      display: block;
+    }
+
+    .nav-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 34px;
+    }
+
+    .nav-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 34px;
+    }
+
+    .nav-item {
+      padding: 6px 0;
+      position: relative;
+      transition: transform .3s var(--ease);
+    }
+
+    .burger {
+      width: 26px;
+      height: 12px;
+      display: inline-flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: stretch;
+      padding: 0;
+    }
+
+    .burger span {
+      display: block;
+      height: 1.5px;
+      width: 100%;
+      background: currentColor;
+      transition: transform .35s var(--ease);
+    }
+
+    /* Floor shadow */
+    .floor-shadow {
+      position: fixed;
+      z-index: 5;
+      pointer-events: none;
+      left: 50%;
+      top: calc(var(--cy) + var(--H) * .47);
+      transform: translateX(-50%);
+      width: min(96vw, calc(var(--H) * 3.6));
+      height: calc(var(--H) * .26);
+      background: radial-gradient(50% 50% at 50% 40%, rgba(40, 32, 20, .30), rgba(40, 32, 20, .10) 55%, transparent 72%);
+    }
+
+    /* 3D Shelf */
+    .shelf {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: calc(var(--cy) - var(--H) / 2 - 50px);
+      height: calc(var(--H) + 100px);
+      perspective: 1400px;
+      perspective-origin: 50% 50%;
+      z-index: 10;
+      touch-action: pan-y;
+    }
+
+    .stage {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+      transform-style: preserve-3d;
+    }
+
+    .tape {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    .face {
+      position: absolute;
+      height: var(--H);
+      top: calc(var(--H) / -2);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 2px;
+      background-repeat: no-repeat;
+      overflow: hidden;
+    }
+
+    .face::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: #000;
+      opacity: var(--shade, 0);
+      pointer-events: none;
+    }
+
+    .sp {
+      --ws: calc(var(--H) * 142 / 840);
+      --d: calc(var(--H) * 474 / 900);
+      width: var(--ws);
+      left: calc(var(--ws) / -2);
+      transform: translateZ(calc(var(--d) / 2));
+    }
+
+    .cv {
+      --ws: calc(var(--H) * 142 / 840);
+      --d: calc(var(--H) * 474 / 900);
+      width: var(--d);
+      left: calc(var(--d) / -2);
+      transform: rotateY(90deg) translateZ(calc(var(--ws) / 2));
+      box-shadow: 0 34px 60px -30px rgba(20, 16, 10, .6);
+    }
+
+    /* Play ring */
+    .play-ring {
+      position: fixed;
+      z-index: 15;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid var(--cobalt);
+      background: rgba(236, 232, 224, .8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    .play-ring svg {
+      width: 12px;
+      height: 12px;
+      display: block;
+      margin-left: 1px;
+    }
+
+    /* Caption */
+    .caption {
+      position: fixed;
+      left: 50%;
+      top: calc(var(--cy) + var(--H) / 2 + 4.2vh);
+      transform: translateX(-50%);
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      z-index: 18;
+      pointer-events: none;
+    }
+
+    .cap-mask {
+      position: relative;
+      overflow: hidden;
+      width: min(80vw, 640px);
+      display: grid;
+      justify-items: center;
+    }
+
+    .cap-mask > span {
+      grid-area: 1 / 1;
+      display: block;
+      text-align: center;
+      white-space: nowrap;
+      will-change: transform;
+    }
+
+    .cap-title {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: clamp(28px, 3.4vw, 46px);
+      line-height: 1.08;
+      letter-spacing: -.015em;
+      color: var(--cobalt);
+    }
+
+    .cap-sub {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 9.5px;
+      line-height: 1.25;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--cobalt);
+    }
+
+    .cap-rule {
+      width: 18px;
+      height: 1px;
+      background: var(--cobalt);
+    }
+
+    .cap-year {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 10.5px;
+      line-height: 1.2;
+      letter-spacing: .08em;
+      color: var(--ink);
+      text-transform: uppercase;
+    }
+
+    /* Arrows */
+    .arrow {
+      position: fixed;
+      top: calc(var(--cy) + var(--H) / 2 + 4.2vh);
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cobalt);
+      z-index: 22;
+      transition: transform .35s var(--ease);
+    }
+
+    .arrow.prev {
+      left: calc(50% - min(19vw, 250px));
+      transform: translateX(-50%);
+    }
+
+    .arrow.next {
+      left: calc(50% + min(19vw, 250px));
+      transform: translateX(-50%);
+    }
+
+    .arrow.prev:hover {
+      transform: translateX(calc(-50% - 4px));
+    }
+
+    .arrow.next:hover {
+      transform: translateX(calc(-50% + 4px));
+    }
+
+    /* Timeline */
+    .timeline {
+      position: fixed;
+      left: 36px;
+      right: 36px;
+      bottom: 64px;
+      height: 40px;
+      z-index: 20;
+    }
+
+    .tl-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 12px;
+      height: 1px;
+      background: var(--cobalt);
+      opacity: .75;
+      pointer-events: none;
+    }
+
+    .tl-tick {
+      position: absolute;
+      top: 12px;
+      width: 1px;
+      background: var(--cobalt);
+      pointer-events: none;
+    }
+
+    .tl-tick.major {
+      height: 13px;
+      opacity: .75;
+    }
+
+    .tl-tick.minor {
+      height: 7px;
+      opacity: .4;
+    }
+
+    .tl-yr {
+      position: absolute;
+      top: 29px;
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 9.5px;
+      line-height: 1;
+      color: var(--cobalt);
+      transform: translateX(-50%);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .tl-yr.first {
+      transform: translateX(0);
+    }
+
+    .tl-yr.last {
+      transform: translateX(-100%);
+    }
+
+    .tl-dot {
+      position: absolute;
+      top: 12px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--cobalt);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      will-change: left;
+    }
+
+    .tl-hit {
+      position: absolute;
+      inset: -6px 0 -4px 0;
+    }
+
+    /* Footer */
+    .footer {
+      position: fixed;
+      left: 36px;
+      right: 36px;
+      bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--cobalt);
+      z-index: 20;
+    }
+
+    .foot-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .foot-back {
+      opacity: .75;
+      transition: opacity .3s var(--ease), transform .3s var(--ease);
+    }
+
+    .foot-back:hover {
+      opacity: 1;
+      transform: translateX(-2px);
+    }
+
+    .foot-sep {
+      opacity: .4;
+    }
+
+    .foot-social {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Custom Kinetic Cursor */
+    .cur {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 58px;
+      height: 58px;
+      margin: -29px 0 0 -29px;
+      pointer-events: none;
+      z-index: 100;
+      transform: translate3d(-200px, -200px, 0);
+      will-change: transform;
+    }
+
+    @media (pointer: coarse), (max-width: 767px) {
+      .cur {
+        display: none;
+      }
+    }
+
+    .cur-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid var(--ink);
+      background: transparent;
+      transition: transform .5s var(--ease), background-color .4s var(--ease), border-color .4s var(--ease);
+    }
+
+    .cur-dot {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      margin: -3px 0 0 -3px;
+      border-radius: 50%;
+      background: var(--ink);
+      transition: transform .4s var(--ease), background-color .4s var(--ease);
+    }
+
+    .cur-lbl {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: #fff;
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 10px;
+      line-height: 1.05;
+      letter-spacing: .1em;
+      transform: scale(0);
+      transition: transform .45s var(--ease);
+    }
+
+    .cur.open .cur-ring {
+      transform: scale(1.75);
+      background-color: var(--cobalt);
+      border-color: var(--cobalt);
+    }
+
+    .cur.open .cur-dot {
+      transform: scale(0);
+    }
+
+    .cur.open .cur-lbl {
+      transform: scale(1);
+    }
+
+    .cur.spine .cur-ring {
+      transform: scale(.72);
+    }
+
+    .cur.btn .cur-ring {
+      transform: scale(.55);
+    }
+
+    .cur.btn .cur-dot {
+      transform: scale(0);
+    }
+
+    /* Detail Sheet */
+    .detail {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: var(--sheet);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4vw;
+      padding: 110px 6vw 56px 7vw;
+      visibility: hidden;
+      pointer-events: none;
+      overflow: hidden;
+      will-change: clip-path;
+    }
+
+    .detail-close {
+      position: absolute;
+      left: 36px;
+      top: 28px;
+      z-index: 4;
+      color: var(--ink);
+      background: transparent;
+      transition: background-color .35s var(--ease), color .35s var(--ease), border-color .35s var(--ease);
+    }
+
+    .detail-close:hover {
+      background: var(--ink);
+      color: var(--sheet);
+    }
+
+    .detail-brand {
+      position: absolute;
+      right: 36px;
+      top: 28px;
+      z-index: 4;
+      color: var(--cobalt);
+    }
+
+    .detail-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-self: center;
+      max-width: 520px;
+      gap: 18px;
+    }
+
+    .d-mask {
+      overflow: hidden;
+    }
+
+    .d-line {
+      display: block;
+      will-change: transform;
+    }
+
+    .d-sub {
+      color: var(--cobalt);
+      letter-spacing: .24em;
+      font-size: 9.5px;
+    }
+
+    .d-title {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: clamp(44px, 5.2vw, 80px);
+      line-height: .96;
+      letter-spacing: -.03em;
+      color: var(--cobalt);
+    }
+
+    .d-meta {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .d-syn {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 17px;
+      line-height: 1.5;
+      max-width: 42ch;
+      color: var(--ink);
+    }
+
+    .d-cred {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 15px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .d-watch {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 44px;
+      padding: 0 22px;
+      border: 1px solid var(--cobalt);
+      color: var(--cobalt);
+      background: transparent;
+      width: fit-content;
+      transition: background-color .35s var(--ease), color .35s var(--ease);
+    }
+
+    .d-watch:hover {
+      background: var(--cobalt);
+      color: var(--sheet);
+    }
+
+    .detail-poster {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+
+    #detail-svg {
+      height: min(100%, 78vh);
+      width: auto;
+      max-width: 100%;
+      display: block;
+      filter: drop-shadow(0 28px 46px rgba(20, 16, 10, .18));
+    }
+
+    /* Interactive Retro CRT Telecine Screening Overlay (inside Detail Sheet) */
+    .crt-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 75;
+      background: rgba(20, 20, 20, .86);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      visibility: hidden;
+      pointer-events: none;
+      clip-path: inset(50% 0 50% 0);
+      transition: clip-path .55s var(--ease), visibility 0s linear .55s;
+    }
+
+    .crt-panel.active {
+      visibility: visible;
+      pointer-events: auto;
+      clip-path: inset(0 0 0 0);
+      transition: clip-path .55s var(--ease), visibility 0s linear 0s;
+    }
+
+    .crt-frame {
+      width: min(760px, 94vw);
+      background: var(--sheet);
+      border: 1px solid var(--ink);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 36px 80px rgba(0, 0, 0, .5);
+    }
+
+    .crt-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--cobalt);
+    }
+
+    .crt-screen-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: #0B0D14;
+      border: 1px solid var(--ink);
+      overflow: hidden;
+    }
+
+    #crt-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .crt-scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0) 0 2px, rgba(0, 0, 0, .26) 2px 4px),
+        radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 0, .62) 100%);
+    }
+
+    .crt-hud {
+      position: absolute;
+      inset: 14px 16px;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #ECE8E0;
+      font-family: var(--sans);
+      text-shadow: 0 1px 0 rgba(0, 0, 0, .7);
+    }
+
+    .crt-hud-top, .crt-hud-bot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .16em;
+    }
+
+    .crt-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .crt-btn-group {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .crt-btn {
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--cobalt);
+      color: var(--cobalt);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color .25s var(--ease), color .25s var(--ease);
+    }
+
+    .crt-btn:hover, .crt-btn.on {
+      background: var(--cobalt);
+      color: var(--sheet);
+    }
+
+    .crt-note {
+      color: var(--muted);
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* Archival Index / About / Journal Drawer */
+    .drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      background: var(--sheet);
+      padding: 92px 6vw 48px;
+      overflow-y: auto;
+      visibility: hidden;
+      pointer-events: none;
+      clip-path: inset(0 0 100% 0);
+      transition: clip-path .65s var(--ease), visibility 0s linear .65s;
+    }
+
+    .drawer.active {
+      visibility: visible;
+      pointer-events: auto;
+      clip-path: inset(0 0 0 0);
+      transition: clip-path .65s var(--ease), visibility 0s linear 0s;
+    }
+
+    .drawer-close {
+      position: fixed;
+      right: 36px;
+      top: 26px;
+      z-index: 56;
+      color: var(--ink);
+      transition: background-color .3s var(--ease), color .3s var(--ease);
+    }
+
+    .drawer-close:hover {
+      background: var(--ink);
+      color: var(--sheet);
+    }
+
+    .drawer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .drawer-inner.active {
+      display: flex;
+    }
+
+    .drawer-h {
+      font-size: clamp(28px, 3.6vw, 48px);
+      font-weight: 600;
+      letter-spacing: -.02em;
+      color: var(--cobalt);
+    }
+
+    .film-index-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      border-top: 1px solid rgba(31, 63, 176, .25);
+    }
+
+    .drawer-film-btn {
+      text-align: left;
+      padding: 16px 14px;
+      border-bottom: 1px solid rgba(31, 63, 176, .2);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: background-color .25s var(--ease);
+    }
+
+    .drawer-film-btn:hover {
+      background: rgba(31, 63, 176, .06);
+    }
+
+    .drawer-film-btn strong {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--cobalt);
+    }
+
+    .drawer-film-btn span {
+      color: var(--muted);
+    }
+
+    .drawer-prose {
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.65;
+      max-width: 60ch;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .journal-entry {
+      border-top: 1px solid rgba(31, 63, 176, .25);
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Phones <= 767px */
+    @media (max-width: 767px) {
+      :root {
+        --H: min(68vw, 40svh);
+        --cy: 43%;
+      }
+
+      .topbar {
+        height: 60px;
+        padding: 0 16px;
+      }
+
+      .brand {
+        gap: 10px;
+      }
+
+      .brand-line {
+        width: 22px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .kanji {
+        font-size: 22vw;
+        opacity: .8;
+      }
+
+      .cap-title {
+        font-size: 27px;
+      }
+
+      .arrow {
+        top: auto;
+        bottom: 118px;
+        transform: none;
+      }
+
+      .arrow.prev {
+        left: 16px;
+      }
+
+      .arrow.next {
+        left: auto;
+        right: 16px;
+      }
+
+      .arrow.prev:hover {
+        transform: translateX(-3px);
+      }
+
+      .arrow.next:hover {
+        transform: translateX(3px);
+      }
+
+      .timeline {
+        left: 16px;
+        right: 16px;
+        bottom: 54px;
+      }
+
+      .tl-yr.alt {
+        display: none;
+      }
+
+      .footer {
+        left: 16px;
+        right: 16px;
+        bottom: 20px;
+      }
+
+      .footer .lbl {
+        font-size: 9px;
+        letter-spacing: .1em;
+      }
+
+      .detail {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 76px 20px 44px;
+        gap: 24px;
+      }
+
+      .detail-poster {
+        order: -1;
+      }
+
+      #detail-svg {
+        height: 46svh;
+      }
+
+      .detail-info {
+        align-self: start;
+        gap: 14px;
+      }
+
+      .d-title {
+        font-size: 42px;
+      }
+
+      .detail-close {
+        left: 16px;
+        top: 18px;
+      }
+
+      .detail-brand {
+        right: 16px;
+        top: 22px;
+        gap: 8px;
+      }
+
+      .detail-brand .brand-line {
+        width: 18px;
+      }
+
+      .detail-brand .lbl {
+        font-size: 9px;
+      }
+
+      .drawer {
+        padding: 76px 20px 40px;
+      }
+
+      .drawer-close {
+        right: 16px;
+        top: 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .arrow,
+      .drawer,
+      .crt-panel,
+      .cur-ring,
+      .cur-dot,
+      .cur-lbl {
+        transition-duration: 1ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="h-probe" aria-hidden="true"></div>
+
+  <!-- Paper Grain -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- Background Halftone Kanji -->
+  <div class="kanji left" aria-hidden="true">映画</div>
+  <div class="kanji right" aria-hidden="true">の記憶</div>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <a href="#home" class="brand" id="home-link" aria-label="Leon Vasari Film Archive">
+      <span class="lbl">LEON VASARI</span>
+      <span class="brand-line" aria-hidden="true"></span>
+      <span class="lbl">FILM ARCHIVE</span>
+    </a>
+    <div class="nav-right">
+      <nav class="nav-links" aria-label="Archive Sections">
+        <button type="button" class="lbl nav-item" data-drawer="films">FILMS</button>
+        <button type="button" class="lbl nav-item" data-drawer="about">ABOUT</button>
+        <button type="button" class="lbl nav-item" data-drawer="journal">JOURNAL</button>
+      </nav>
+      <button type="button" class="burger" id="burger-btn" aria-label="Open Film Index" data-drawer="films">
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Floor Shadow -->
+  <div class="floor-shadow" aria-hidden="true"></div>
+
+  <!-- Curved 3D VHS Shelf -->
+  <section class="shelf" id="shelf" aria-label="VHS Tape Carousel">
+    <div class="stage" id="stage"></div>
+  </section>
+
+  <!-- Play Ring -->
+  <button type="button" class="play-ring" id="play-ring" aria-label="Open Film Dossier">
+    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <polygon points="3,1.5 10.5,6 3,10.5" fill="currentColor" style="color: var(--cobalt);" />
+    </svg>
+  </button>
+
+  <!-- Caption -->
+  <div class="caption" aria-live="polite">
+    <div class="cap-mask cap-title" id="cap-title"><span></span></div>
+    <div class="cap-mask cap-sub" id="cap-sub"><span></span></div>
+    <div class="cap-rule" aria-hidden="true"></div>
+    <div class="cap-mask cap-year" id="cap-year"><span></span></div>
+  </div>
+
+  <!-- Prev / Next Arrows -->
+  <button type="button" class="arrow prev" id="btn-prev" aria-label="Previous Film">
+    <svg width="24" height="12" viewBox="0 0 24 12" fill="none" aria-hidden="true">
+      <path d="M6 1L1 6l5 5M1 6h23" stroke="currentColor" stroke-width="1.2" />
+    </svg>
+  </button>
+  <button type="button" class="arrow next" id="btn-next" aria-label="Next Film">
+    <svg width="24" height="12" viewBox="0 0 24 12" fill="none" aria-hidden="true">
+      <path d="M18 1l5 5-5 5M23 6H1" stroke="currentColor" stroke-width="1.2" />
+    </svg>
+  </button>
+
+  <!-- 1955-1990 Timeline -->
+  <div class="timeline" id="timeline" role="slider" aria-label="Archive Year Timeline" aria-valuemin="1955" aria-valuemax="1990" aria-valuenow="1971" tabindex="0">
+    <div class="tl-line"></div>
+    <div class="tl-dot" id="tl-dot"></div>
+    <div class="tl-hit" id="tl-hit"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="lbl">© LEON VASARI. ALL RIGHTS RESERVED.</span>
+    <div class="foot-right">
+      <a href="../../" class="lbl foot-back">← PORTFOLIO</a>
+      <span class="lbl foot-sep" aria-hidden="true">/</span>
+      <span class="foot-social">
+        <a href="#facebook" class="lbl" id="link-fb">FB</a>
+        <span class="lbl" aria-hidden="true">/</span>
+        <a href="#twitter" class="lbl" id="link-tw">TW</a>
+      </span>
+    </div>
+  </footer>
+
+  <!-- Archive Index / About / Journal Drawer -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <button type="button" class="lbl box drawer-close" id="drawer-close">CLOSE / 閉じる</button>
+
+    <div class="drawer-inner" id="panel-films">
+      <span class="lbl" style="color: var(--cobalt);">COMPLETE MAGNETIC CATALOGUE — 1958–1989</span>
+      <h2 class="drawer-h">Twelve Archival Tapes</h2>
+      <div class="film-index-list" id="film-index-list"></div>
+    </div>
+
+    <div class="drawer-inner" id="panel-about">
+      <span class="lbl" style="color: var(--cobalt);">DIRECTOR BIOGRAPHY &amp; PRESERVATION</span>
+      <h2 class="drawer-h">Leon Vasari (1933–1994)</h2>
+      <div class="drawer-prose">
+        <p>Working between northern port towns and remote frontier valleys from 1958 to 1989, Leon Vasari built twelve austere chamber features marked by wind-worn landscapes, magnetic silence, and slow geometric camera movement.</p>
+        <p>Following the closure of his Tokyo and Milan cutting rooms, every surviving 35mm workprint was struck onto heavy-stock archival VHS editions packaged in hand-screened cobalt and vermilion sleeves. This digital shelf preserves the twelve canonical releases in chronological sequence.</p>
+      </div>
+    </div>
+
+    <div class="drawer-inner" id="panel-journal">
+      <span class="lbl" style="color: var(--cobalt);">TELECINE &amp; SLEEVE RESTORATION NOTES</span>
+      <h2 class="drawer-h">Archival Logbook</h2>
+      <div class="drawer-prose">
+        <div class="journal-entry">
+          <span class="lbl" style="color: var(--cobalt);">NOTE 04 — NOON IN ASHES (1971)</span>
+          <p>Oxide shedding stabilized on Reel B prior to frame-by-frame transfer. Duotone screenprint sleeve calibrated against original cobalt ink proof.</p>
+        </div>
+        <div class="journal-entry">
+          <span class="lbl" style="color: var(--cobalt);">NOTE 07 — RIVER OF SALT &amp; THE OBSERVER</span>
+          <p>Cardboard spine typography re-struck from surviving festival press proofs; original magnetic soundtrack retains 60Hz optical hum.</p>
+        </div>
+        <div class="journal-entry">
+          <span class="lbl" style="color: var(--cobalt);">NOTE 12 — RED DOOR (1989)</span>
+          <p>Final feature shot on high-speed monochrome stock before projectionists retired the last carbon-arc house in November 1989.</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Full-Screen Detail Sheet -->
+  <section class="detail" id="detail" aria-hidden="true">
+    <button type="button" class="lbl box detail-close" id="detail-close">CLOSE / 閉じる</button>
+    <div class="brand detail-brand">
+      <span class="lbl">LEON VASARI</span>
+      <span class="brand-line" aria-hidden="true"></span>
+      <span class="lbl">FILM ARCHIVE</span>
+    </div>
+
+    <div class="detail-info">
+      <div class="d-mask"><span class="d-line lbl d-sub" id="d-sub"></span></div>
+      <div class="d-mask"><h1 class="d-line d-title" id="d-title"></h1></div>
+      <div class="d-mask"><span class="d-line d-meta" id="d-meta"></span></div>
+      <div class="d-mask"><p class="d-line d-syn" id="d-syn"></p></div>
+      <div class="d-mask"><p class="d-line d-cred" id="d-cred">Written and directed by Leon Vasari. 監督作品</p></div>
+      <div class="d-mask">
+        <button type="button" class="d-line lbl d-watch" id="d-watch">WATCH THE FILM / 映画を見る</button>
+      </div>
+    </div>
+
+    <div class="detail-poster">
+      <svg id="detail-svg" viewBox="0 0 474 900" aria-label="Film Poster Artwork">
+        <defs>
+          <filter id="ink-bleed" filterUnits="userSpaceOnUse" x="-150" y="-150" width="774" height="1200">
+            <feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves="3" seed="7" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="120" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <mask id="ink-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="474" height="900">
+            <rect width="474" height="900" fill="#000" />
+            <g filter="url(#ink-bleed)" id="ink-circles">
+              <circle cx="150" cy="330" r="0" fill="#fff" />
+              <circle cx="340" cy="600" r="0" fill="#fff" />
+              <circle cx="250" cy="120" r="0" fill="#fff" />
+              <circle cx="90" cy="760" r="0" fill="#fff" />
+              <circle cx="400" cy="250" r="0" fill="#fff" />
+              <circle cx="260" cy="860" r="0" fill="#fff" />
+              <circle cx="230" cy="470" r="0" fill="#fff" />
+            </g>
+          </mask>
+          <clipPath id="poster-clip">
+            <rect width="474" height="900" />
+          </clipPath>
+        </defs>
+        <g clip-path="url(#poster-clip)" mask="url(#ink-mask)">
+          <image id="detail-img" preserveAspectRatio="none" href="" />
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Retro CRT Telecine Preview -->
+  <div class="crt-panel" id="crt-panel" aria-hidden="true">
+    <div class="crt-frame">
+      <div class="crt-head">
+        <span class="lbl" id="crt-title-lbl">VHS TELECINE MONITOR</span>
+        <button type="button" class="lbl box" id="crt-close" style="color: var(--ink);">EJECT / 取出</button>
+      </div>
+      <div class="crt-screen-wrap">
+        <canvas id="crt-canvas" width="640" height="400"></canvas>
+        <div class="crt-scanlines" aria-hidden="true"></div>
+        <div class="crt-hud" aria-hidden="true">
+          <div class="crt-hud-top">
+            <span id="crt-mode">▶ PLAY SP</span>
+            <span id="crt-tc">00:00:00:00</span>
+          </div>
+          <div class="crt-hud-bot">
+            <span id="crt-reel">VASARI ARCHIVE REEL</span>
+            <span id="crt-track">TRACKING AUTO</span>
+          </div>
+        </div>
+      </div>
+      <div class="crt-controls">
+        <div class="crt-btn-group">
+          <button type="button" class="lbl crt-btn on" id="crt-play-btn">PAUSE</button>
+          <button type="button" class="lbl crt-btn" id="crt-glitch-btn">TRACKING SYNC</button>
+          <button type="button" class="lbl crt-btn" id="crt-rew-btn">◀◀ REWIND</button>
+        </div>
+        <span class="crt-note" id="crt-status">Archival magnetic preview — 35mm telecine workprint</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Kinetic Cursor -->
+  <div class="cur" id="cur" aria-hidden="true">
+    <div class="cur-ring"></div>
+    <div class="cur-dot"></div>
+    <div class="cur-lbl"><span>OPEN</span><span>開く</span></div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ================================================================
+         1. MEDIA SHEETS & EXACT PIXEL CROP TABLES
+         ================================================================ */
+      const SHEET = {
+        covers: [
+          'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261029_010644_837e04ca-2418-45c1-b8e0-0233265c4cd5.png&w=1744&q=85',
+          1744, 2336
+        ],
+        spines: [
+          'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261029_010738_a3e47ead-18f2-4974-9468-06d16a25edc5.png&w=2688&q=85',
+          2688, 1152
+        ],
+        fix: [
+          'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261029_010831_3ebb874b-93dc-433e-87ed-6299aba720f0.png&w=1520&q=85',
+          1520, 2688
+        ],
+        fix2: [
+          'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261029_092020_f96bc094-db7b-46de-9298-074a24e0a3b8.png&w=1520&q=85',
+          1520, 2688
+        ]
+      };
+
+      const CROP = {
+        'spine-valley':   ['spines', 266,  31, 189, 1089],
+        'cover-valley':   ['covers', 497,  72, 344,  659],
+        'spine-bluehour': ['spines', 492,  31, 189, 1089],
+        'cover-bluehour': ['covers', 914,  72, 342,  659],
+        'spine-river':    ['fix',    197,  54, 324, 2566],
+        'cover-river':    ['covers', 1332, 72, 344,  659],
+        'spine-summer':   ['spines', 937,  31, 188, 1089],
+        'cover-summer':   ['covers', 74,  813, 344,  676],
+        'spine-green':    ['spines', 1157, 31, 185, 1090],
+        'cover-green':    ['covers', 497, 815, 344,  674],
+        'spine-noon':     ['spines', 44,   32, 184, 1088],
+        'cover-noon':     ['covers', 74,   72, 347,  659],
+        'spine-observer': ['fix2',   371,  15, 349, 2655],
+        'cover-observer': ['covers', 915, 815, 342,  675],
+        'spine-birds':    ['spines', 1573, 31, 183, 1089],
+        'cover-birds':    ['covers', 1331,815, 345,  675],
+        'spine-storm':    ['fix2',   808,  15, 347, 2656],
+        'cover-storm':    ['covers', 74, 1571, 345,  681],
+        'spine-tide':     ['spines', 2012, 31, 188, 1089],
+        'cover-tide':     ['covers', 496,1577, 343,  678],
+        'spine-war':      ['spines', 2236, 31, 189, 1089],
+        'cover-war':      ['covers', 913,1579, 343,  676],
+        'spine-door':     ['spines', 2462, 31, 188, 1089],
+        'cover-door':     ['covers', 1331,1579,344,  677]
+      };
+
+      // Preload all four sprite sheets immediately
+      Object.keys(SHEET).forEach(function (key) {
+        const img = new Image();
+        img.src = SHEET[key][0];
+      });
+
+      /* ================================================================
+         2. FILM CATALOGUE (Opens on index 5: Noon in Ashes)
+         ================================================================ */
+      const FILMS = [
+        {
+          id: 'valley',
+          title: 'The Silent Valley',
+          romaji: 'SHIZUKANA TANI',
+          kanji: '静かな谷',
+          year: 1958,
+          genre: 'Drama',
+          min: 104,
+          syn: 'A schoolteacher returns to the mountain village that exiled her father, and finds the valley has kept every one of its secrets.'
+        },
+        {
+          id: 'bluehour',
+          title: 'The Blue Hour',
+          romaji: 'AO NO TOKI',
+          kanji: '青の刻',
+          year: 1962,
+          genre: 'Romance',
+          min: 97,
+          syn: 'Over one long evening in a harbour town, a widow and a stranger trade small lies until the light runs out.'
+        },
+        {
+          id: 'river',
+          title: 'River of Salt',
+          romaji: 'SHIO NO KAWA',
+          kanji: '塩の川',
+          year: 1964,
+          genre: 'Drama',
+          min: 121,
+          syn: 'Two brothers drag a salt barge downriver to a city that no longer wants anything they carry.'
+        },
+        {
+          id: 'summer',
+          title: 'The Last Summer',
+          romaji: 'SAIGO NO NATSU',
+          kanji: '最後の夏',
+          year: 1966,
+          genre: 'Drama',
+          min: 109,
+          syn: 'The summer before the dam floods their village, three friends set fire to everything they cannot take with them.'
+        },
+        {
+          id: 'green',
+          title: 'The Green Road',
+          romaji: 'MIDORI NO MICHI',
+          kanji: '緑の道',
+          year: 1969,
+          genre: 'Mystery',
+          min: 101,
+          syn: 'A surveyor mapping a forest road keeps finding the same footprints, always one day ahead of him.'
+        },
+        {
+          id: 'noon',
+          title: 'Noon in Ashes',
+          romaji: 'HAI NO SHOGO',
+          kanji: '灰の正午',
+          year: 1971,
+          genre: 'Western',
+          min: 112,
+          syn: 'A rider crosses a white desert to settle an old debt, and learns too late who sent him.'
+        },
+        {
+          id: 'observer',
+          title: 'The Observer',
+          romaji: 'KANSATSUSHA',
+          kanji: '観察者',
+          year: 1973,
+          genre: 'Thriller',
+          min: 96,
+          syn: 'A night watchman begins to suspect that the building he guards has started watching him back.'
+        },
+        {
+          id: 'birds',
+          title: 'The Fallen Birds',
+          romaji: 'OCHITA TORI',
+          kanji: '落ちた鳥',
+          year: 1975,
+          genre: 'Drama',
+          min: 118,
+          syn: 'When the birds stop singing over a frontier town, the mayor’s daughter is the only one who goes looking for the reason.'
+        },
+        {
+          id: 'storm',
+          title: 'Light in the Storm',
+          romaji: 'ARASHI NO HI',
+          kanji: '嵐の灯',
+          year: 1978,
+          genre: 'Drama',
+          min: 127,
+          syn: 'A lighthouse keeper and his son wait out a three-day storm with a shipwrecked sailor who will not give his name.'
+        },
+        {
+          id: 'tide',
+          title: 'The Long Tide',
+          romaji: 'NAGAI SHIO',
+          kanji: '長い潮',
+          year: 1981,
+          genre: 'Drama',
+          min: 99,
+          syn: 'A fisherman’s wife counts the tides on the harbour wall while her husband’s boat fails to come home.'
+        },
+        {
+          id: 'war',
+          title: 'A Quiet War',
+          romaji: 'SHIZUKANA SENSO',
+          kanji: '静かな戦争',
+          year: 1985,
+          genre: 'Comedy',
+          min: 103,
+          syn: 'Two neighbours fight a silent war over a garden wall for thirty years, and neither will say how it began.'
+        },
+        {
+          id: 'door',
+          title: 'Red Door',
+          romaji: 'AKAI TOBIRA',
+          kanji: '赤い扉',
+          year: 1989,
+          genre: 'Thriller',
+          min: 114,
+          syn: 'A projectionist follows a reel of unknown film through the corridors of a cinema on its final night.'
+        }
+      ];
+
+      /* ================================================================
+         3. DOM REFERENCES
+         ================================================================ */
+      const hProbe      = document.getElementById('h-probe');
+      const shelfEl     = document.getElementById('shelf');
+      const stageEl     = document.getElementById('stage');
+      const playRingEl  = document.getElementById('play-ring');
+      const capTitleEl  = document.getElementById('cap-title');
+      const capSubEl    = document.getElementById('cap-sub');
+      const capYearEl   = document.getElementById('cap-year');
+      const btnPrev     = document.getElementById('btn-prev');
+      const btnNext     = document.getElementById('btn-next');
+      const timelineEl  = document.getElementById('timeline');
+      const tlDotEl     = document.getElementById('tl-dot');
+      const tlHitEl     = document.getElementById('tl-hit');
+      const homeLink    = document.getElementById('home-link');
+      const curEl       = document.getElementById('cur');
+
+      const detailEl    = document.getElementById('detail');
+      const detailClose = document.getElementById('detail-close');
+      const dSubEl      = document.getElementById('d-sub');
+      const dTitleEl    = document.getElementById('d-title');
+      const dMetaEl     = document.getElementById('d-meta');
+      const dSynEl      = document.getElementById('d-syn');
+      const dWatchBtn   = document.getElementById('d-watch');
+      const detailImg   = document.getElementById('detail-img');
+      const inkGroup    = document.getElementById('ink-circles');
+      const inkCircles  = Array.from(inkGroup.querySelectorAll('circle'));
+      const dLineEls    = Array.from(detailEl.querySelectorAll('.d-line'));
+
+      const crtPanel    = document.getElementById('crt-panel');
+      const crtCanvas   = document.getElementById('crt-canvas');
+      const crtCtx      = crtCanvas.getContext('2d');
+      const crtClose    = document.getElementById('crt-close');
+      const crtPlayBtn  = document.getElementById('crt-play-btn');
+      const crtGlitchBtn= document.getElementById('crt-glitch-btn');
+      const crtRewBtn   = document.getElementById('crt-rew-btn');
+      const crtTitleLbl = document.getElementById('crt-title-lbl');
+      const crtModeEl   = document.getElementById('crt-mode');
+      const crtTcEl     = document.getElementById('crt-tc');
+      const crtReelEl   = document.getElementById('crt-reel');
+      const crtTrackEl  = document.getElementById('crt-track');
+      const crtStatusEl = document.getElementById('crt-status');
+
+      const drawerEl    = document.getElementById('drawer');
+      const drawerClose = document.getElementById('drawer-close');
+      const filmIdxList = document.getElementById('film-index-list');
+      const panelMap    = {
+        films:   document.getElementById('panel-films'),
+        about:   document.getElementById('panel-about'),
+        journal: document.getElementById('panel-journal')
+      };
+
+      /* ================================================================
+         4. STATE & REDUCED MOTION
+         ================================================================ */
+      const rmQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let reducedMotion = rmQuery.matches;
+      rmQuery.addEventListener('change', function (e) {
+        reducedMotion = e.matches;
+      });
+
+      const P = 1400; // CSS perspective
+      const INK_SPECS = [
+        [150, 330,   0],
+        [340, 600, 120],
+        [250, 120, 220],
+        [ 90, 760, 300],
+        [400, 250, 360],
+        [260, 860, 420],
+        [230, 470, 180]
+      ];
+
+      let W = window.innerWidth;
+      let VH = window.innerHeight;
+      let H = 380;
+      let ws = 64;
+      let d = 200;
+      let gap = 13;
+      let U = 494;
+      let cyPx = VH * 0.41;
+      let XS = new Float64Array(1);
+
+      let T = 5 + 12; // target virtual index (17)
+      let s = 5 + 12; // current spring index (17)
+      let activeFilmIdx = 5;
+      let tlYear = FILMS[5].year;
+
+      let mx = W / 2;
+      let my = VH / 2;
+      let curX = -200;
+      let curY = -200;
+      let pointerSeen = false;
+      let pointerBtnHover = false;
+
+      let tiltX = 0;
+      let tiltY = 0;
+      let hoveredV = -1;
+
+      let dragging = false;
+      let pointerDown = false;
+      let downX = 0;
+      let downY = 0;
+      let T0 = T;
+      let downTapeV = -1;
+      let suppressClickUntil = 0;
+      let wheelTimer = null;
+
+      let detailOpen = false;
+      let detailAnimating = false;
+      let detailFilmIdx = 5;
+      let detailClipAnim = null;
+      let detailLineAnims = [];
+      let inkRunning = false;
+      let inkStartTime = 0;
+
+      let drawerOpen = false;
+      let crtOpen = false;
+      let crtPlaying = true;
+      let crtSeconds = 0;
+      let crtGlitchBurst = 0;
+      let crtSeed = 1;
+
+      /* ================================================================
+         5. HELPERS: CROP, MATH, INTEGRAL XS
+         ================================================================ */
+      function applyCropBg(el, cropKey) {
+        const entry = CROP[cropKey];
+        const sheet = SHEET[entry[0]];
+        const url = sheet[0], sw = sheet[1], sh = sheet[2];
+        const x = entry[1], y = entry[2], w = entry[3], h = entry[4];
+        el.style.backgroundImage = 'url("' + url + '")';
+        el.style.backgroundSize = ((sw / w) * 100).toFixed(4) + '% ' + ((sh / h) * 100).toFixed(4) + '%';
+        el.style.backgroundPosition = ((x / (sw - w)) * 100).toFixed(4) + '% ' + ((y / (sh - h)) * 100).toFixed(4) + '%';
+      }
+
+      function smoothstep(t) {
+        const c = t < 0 ? 0 : t > 1 ? 1 : t;
+        return c * c * (3 - 2 * c);
+      }
+
+      function B(r) {
+        if (r >= 1) return 0.5;
+        if (r <= -1) return -0.5;
+        return (r + Math.sin(Math.PI * r) / Math.PI) * 0.5;
+      }
+
+      function F(r) {
+        return r * (ws + gap) + (d - ws + 1.4 * gap) * B(r);
+      }
+
+      function scl(u) {
+        return 1 / (1 + Math.pow(Math.abs(u) / U, 1.6));
+      }
+
+      function buildXS() {
+        const maxU = 3 * U;
+        const count = Math.ceil(maxU / 2) + 2;
+        XS = new Float64Array(count);
+        let acc = 0;
+        XS[0] = 0;
+        for (let i = 1; i < count; i++) {
+          const uStep = (i - 1) * 2;
+          acc += 2 / (1 + Math.pow(uStep / U, 1.6));
+          XS[i] = acc;
+        }
+      }
+
+      function xsc(u) {
+        if (u === 0) return 0;
+        const sign = u < 0 ? -1 : 1;
+        const idx = Math.abs(u) / 2;
+        const i0 = Math.floor(idx);
+        if (i0 >= XS.length - 1) return sign * XS[XS.length - 1];
+        const frac = idx - i0;
+        return sign * (XS[i0] + (XS[i0 + 1] - XS[i0]) * frac);
+      }
+
+      function rel(v, curS) {
+        let r = (((v - curS) % 36) + 36) % 36;
+        if (r >= 18) r -= 36;
+        return r;
+      }
+
+      function measureMetrics() {
+        W = window.innerWidth;
+        VH = window.innerHeight;
+        const measuredH = hProbe.getBoundingClientRect().height;
+        H = measuredH > 10 ? measuredH : Math.min(VH * 0.47, W * 0.33);
+        ws = (H * 142) / 840;
+        d = (H * 474) / 900;
+        gap = H * 0.035;
+        const isPhone = W <= 767;
+        U = H * (isPhone ? 1.05 : 1.3);
+        cyPx = VH * (isPhone ? 0.43 : 0.41);
+        buildXS();
+
+        // Position play ring on active cover lower-left corner
+        playRingEl.style.left = (W / 2 - d / 2 - 6).toFixed(1) + 'px';
+        playRingEl.style.top = (cyPx + 0.36 * H).toFixed(1) + 'px';
+      }
+
+      /* ================================================================
+         6. BUILD 36 VIRTUAL TAPES, TIMELINE TICKS & INDEX DRAWER
+         ================================================================ */
+      const tapes = [];
+      (function buildTapes() {
+        const frag = document.createDocumentFragment();
+        for (let copy = 0; copy < 3; copy++) {
+          for (let i = 0; i < 12; i++) {
+            const v = copy * 12 + i;
+            const film = FILMS[i];
+
+            const tape = document.createElement('div');
+            tape.className = 'tape';
+            tape.dataset.v = String(v);
+            tape.dataset.film = film.id;
+
+            const sp = document.createElement('div');
+            sp.className = 'face sp';
+            applyCropBg(sp, 'spine-' + film.id);
+
+            const cv = document.createElement('div');
+            cv.className = 'face cv';
+            applyCropBg(cv, 'cover-' + film.id);
+
+            tape.appendChild(sp);
+            tape.appendChild(cv);
+            frag.appendChild(tape);
+
+            tapes.push({ v: v, i: i, el: tape, sp: sp, cv: cv, lift: 0 });
+          }
+        }
+        stageEl.appendChild(frag);
+      })();
+
+      (function buildTimeline() {
+        const frag = document.createDocumentFragment();
+        let majorCount = 0;
+        for (let yr = 1955; yr <= 1990; yr++) {
+          const pct = (((yr - 1955) / 35) * 100).toFixed(4) + '%';
+          const isMajor = yr % 5 === 0;
+          const tick = document.createElement('span');
+          tick.className = 'tl-tick ' + (isMajor ? 'major' : 'minor');
+          tick.style.left = pct;
+          frag.appendChild(tick);
+
+          if (isMajor) {
+            const lbl = document.createElement('span');
+            let cls = 'tl-yr';
+            if (yr === 1955) cls += ' first';
+            else if (yr === 1990) cls += ' last';
+            else if (majorCount % 2 === 1) cls += ' alt';
+            lbl.className = cls;
+            lbl.style.left = pct;
+            lbl.textContent = String(yr);
+            frag.appendChild(lbl);
+            majorCount++;
+          }
+        }
+        timelineEl.insertBefore(frag, tlDotEl);
+      })();
+
+      (function buildDrawerIndex() {
+        const frag = document.createDocumentFragment();
+        FILMS.forEach(function (film, idx) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'drawer-film-btn';
+          btn.innerHTML =
+            '<span class="lbl">' + film.year + ' — ' + film.genre + ' / ' + film.min + ' MIN</span>' +
+            '<strong>' + film.title + '</strong>' +
+            '<span class="lbl" style="letter-spacing:.18em;color:var(--cobalt);">' + film.romaji + ' / ' + film.kanji + '</span>';
+          btn.addEventListener('click', function () {
+            closeDrawer();
+            jumpToFilm(idx);
+          });
+          frag.appendChild(btn);
+        });
+        filmIdxList.appendChild(frag);
+      })();
+
+      /* ================================================================
+         7. CAPTION MASK-SLIDE ENGINE
+         ================================================================ */
+      function setInitialCaption(film) {
+        capTitleEl.firstElementChild.textContent = film.title;
+        capSubEl.firstElementChild.textContent = film.romaji + ' / ' + film.kanji;
+        capYearEl.firstElementChild.textContent = film.year + ' — ' + film.genre.toUpperCase();
+        timelineEl.setAttribute('aria-valuenow', String(film.year));
+      }
+
+      function swapMaskLine(maskEl, newText, dir) {
+        if (reducedMotion || dir === 0) {
+          const existing = Array.from(maskEl.children);
+          existing.slice(1).forEach(function (n) { n.remove(); });
+          if (existing[0]) {
+            if (existing[0]._anim) existing[0]._anim.cancel();
+            existing[0].style.transform = '';
+            existing[0].textContent = newText;
+          }
+          return;
+        }
+
+        const oldSpans = Array.from(maskEl.children);
+        oldSpans.forEach(function (old) {
+          const curTf = getComputedStyle(old).transform;
+          const fromTf = curTf && curTf !== 'none' ? curTf : 'translateY(0%)';
+          if (old._anim) old._anim.cancel();
+          const outAnim = old.animate(
+            [
+              { transform: fromTf },
+              { transform: 'translateY(' + (-dir * 105) + '%)' }
+            ],
+            { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' }
+          );
+          old._anim = outAnim;
+          outAnim.onfinish = function () {
+            old.remove();
+          };
+        });
+
+        const next = document.createElement('span');
+        next.textContent = newText;
+        maskEl.appendChild(next);
+        next._anim = next.animate(
+          [
+            { transform: 'translateY(' + (dir * 105) + '%)' },
+            { transform: 'translateY(0%)' }
+          ],
+          { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' }
+        );
+      }
+
+      function swapCaption(film, dir) {
+        swapMaskLine(capTitleEl, film.title, dir);
+        swapMaskLine(capSubEl, film.romaji + ' / ' + film.kanji, dir);
+        swapMaskLine(capYearEl, film.year + ' — ' + film.genre.toUpperCase(), dir);
+        timelineEl.setAttribute('aria-valuenow', String(film.year));
+      }
+
+      /* ================================================================
+         8. SHELF RENDERING (SINGLE FRAME PASS)
+         ================================================================ */
+      function renderShelf(dt) {
+        const isSettled = Math.abs(T - s) < 0.3 && !detailOpen && !drawerOpen;
+        const onCover = isSettled && Math.abs(mx - W / 2) < 0.55 * d && Math.abs(my - cyPx) < 0.55 * H;
+
+        const targetTiltY = onCover
+          ? ((mx - W / 2) / (0.55 * d)) * 8
+          : ((mx - W / 2) / Math.max(1, W)) * 4;
+        const targetTiltX = onCover
+          ? -((my - cyPx) / (H / 2)) * 5
+          : 0;
+
+        const tiltAlpha = reducedMotion ? 1 : 1 - Math.exp(-7 * dt);
+        tiltY += (targetTiltY - tiltY) * tiltAlpha;
+        tiltX += (targetTiltX - tiltX) * tiltAlpha;
+
+        const liftAlpha = reducedMotion ? 1 : 1 - Math.exp(-12 * dt);
+
+        for (let idx = 0; idx < 36; idx++) {
+          const t = tapes[idx];
+          const r = rel(t.v, s);
+          const absR = Math.abs(r);
+          const u = F(r);
+
+          if (Math.abs(u) > U * 1.95) {
+            if (t.el.style.display !== 'none') t.el.style.display = 'none';
+            t.lift = 0;
+            continue;
+          }
+          if (t.el.style.display === 'none') t.el.style.display = '';
+
+          const o = smoothstep(Math.max(0, 1 - absR));
+          const sc = scl(u);
+          const k = 1 / sc;
+
+          const wantLift = (!detailOpen && !drawerOpen && !dragging && hoveredV === t.v && absR > 0.5) ? 1 : 0;
+          t.lift += (wantLift - t.lift) * liftAlpha;
+
+          const z = P * (1 - k) + o * H * 0.1;
+          const x = xsc(u) * k;
+          const y = (H * 0.5 * (1 - sc) * 0.42 + o * H * 0.012 - t.lift * H * 0.05) * k;
+
+          const signU = u < 0 ? -1 : u > 0 ? 1 : 0;
+          const rotY = signU * Math.min(1, Math.abs(u) / U) * 26 * (1 - o) - 90 * o + tiltY * o;
+          const rotX = tiltX * o;
+
+          t.el.style.transform =
+            'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,' + z.toFixed(2) + 'px) ' +
+            'rotateX(' + rotX.toFixed(3) + 'deg) rotateY(' + rotY.toFixed(3) + 'deg)';
+          t.el.style.zIndex = String(Math.round(3000 + z));
+
+          const spShade = Math.min(0.6, o * 0.55 + (1 - sc) * 0.32);
+          const cvShade = (1 - o) * 0.82;
+          t.sp.style.setProperty('--shade', spShade.toFixed(3));
+          t.cv.style.setProperty('--shade', cvShade.toFixed(3));
+        }
+
+        // Play ring scale
+        const ringScale = (detailOpen || drawerOpen)
+          ? 0
+          : smoothstep(Math.max(0, 1 - Math.abs(T - s) * 3));
+        playRingEl.style.transform = 'scale(' + ringScale.toFixed(4) + ')';
+        playRingEl.style.pointerEvents = ringScale > 0.2 ? 'auto' : 'none';
+
+        return onCover;
+      }
+
+      /* ================================================================
+         9. DETAIL SHEET + 7-CIRCLE INK BLEED
+         ================================================================ */
+      function getActiveCoverElement() {
+        let best = tapes[0];
+        let bestAbs = Infinity;
+        for (let idx = 0; idx < 36; idx++) {
+          const absR = Math.abs(rel(tapes[idx].v, s));
+          if (absR < bestAbs) {
+            bestAbs = absR;
+            best = tapes[idx];
+          }
+        }
+        return best.cv;
+      }
+
+      function populateDetail(film) {
+        dSubEl.textContent = film.romaji + ' / ' + film.kanji;
+        dTitleEl.textContent = film.title;
+        dMetaEl.textContent = film.year + ' / ' + film.genre.toUpperCase() + ' / ' + film.min + ' MIN';
+        dSynEl.textContent = film.syn;
+
+        const crop = CROP['cover-' + film.id];
+        const sheet = SHEET[crop[0]];
+        const url = sheet[0], sw = sheet[1], sh = sheet[2];
+        const x = crop[1], y = crop[2], w = crop[3], h = crop[4];
+
+        detailImg.setAttribute('href', url);
+        detailImg.setAttribute('x', (-x * 474 / w).toFixed(2));
+        detailImg.setAttribute('y', (-y * 900 / h).toFixed(2));
+        detailImg.setAttribute('width', (sw * 474 / w).toFixed(2));
+        detailImg.setAttribute('height', (sh * 900 / h).toFixed(2));
+      }
+
+      function cancelDetailAnims() {
+        if (detailClipAnim) {
+          detailClipAnim.cancel();
+          detailClipAnim = null;
+        }
+        detailLineAnims.forEach(function (a) { a.cancel(); });
+        detailLineAnims = [];
+      }
+
+      function openDetail() {
+        if (detailOpen || detailAnimating) return;
+        closeDrawer();
+
+        // 1. Snap T and s so the active cover faces flat forward
+        T = Math.round(T);
+        s = T;
+        const idx = ((Math.round(s) % 12) + 12) % 12;
+        detailFilmIdx = idx;
+        if (idx !== activeFilmIdx) {
+          activeFilmIdx = idx;
+          setInitialCaption(FILMS[idx]);
+        }
+        renderShelf(0.016);
+
+        const film = FILMS[idx];
+        populateDetail(film);
+
+        // Reset circle radii to 0
+        inkCircles.forEach(function (c) { c.setAttribute('r', '0'); });
+
+        // 2. Measure cover face rect
+        const coverEl = getActiveCoverElement();
+        const rect = coverEl.getBoundingClientRect();
+        const clipStart =
+          'inset(' +
+          Math.max(0, rect.top).toFixed(1) + 'px ' +
+          Math.max(0, W - rect.right).toFixed(1) + 'px ' +
+          Math.max(0, VH - rect.bottom).toFixed(1) + 'px ' +
+          Math.max(0, rect.left).toFixed(1) + 'px round 3px)';
+        const clipEnd = 'inset(0px 0px 0px 0px round 0px)';
+
+        detailOpen = true;
+        detailAnimating = true;
+        detailEl.scrollTop = 0;
+        detailEl.style.visibility = 'visible';
+        detailEl.style.pointerEvents = 'auto';
+        detailEl.setAttribute('aria-hidden', 'false');
+
+        cancelDetailAnims();
+
+        const sheetDur = reducedMotion ? 1 : 1050;
+        const textDur = reducedMotion ? 1 : 900;
+
+        detailClipAnim = detailEl.animate(
+          [{ clipPath: clipStart }, { clipPath: clipEnd }],
+          { duration: sheetDur, easing: 'cubic-bezier(.76,0,.18,1)', fill: 'both' }
+        );
+        detailClipAnim.onfinish = function () {
+          detailAnimating = false;
+        };
+
+        dLineEls.forEach(function (line, i) {
+          const anim = line.animate(
+            [{ transform: 'translateY(110%)' }, { transform: 'translateY(0%)' }],
+            {
+              duration: textDur,
+              delay: reducedMotion ? 0 : 620 + i * 75,
+              easing: 'cubic-bezier(.2,.8,.2,1)',
+              fill: 'both'
+            }
+          );
+          detailLineAnims.push(anim);
+        });
+
+        inkRunning = true;
+        inkStartTime = performance.now() - (reducedMotion ? 5000 : 0);
+      }
+
+      function closeDetail() {
+        if (!detailOpen) return;
+        if (crtOpen) closeCrt();
+
+        const coverEl = getActiveCoverElement();
+        const rect = coverEl.getBoundingClientRect();
+        const clipStart = 'inset(0px 0px 0px 0px round 0px)';
+        const clipEnd =
+          'inset(' +
+          Math.max(0, rect.top).toFixed(1) + 'px ' +
+          Math.max(0, W - rect.right).toFixed(1) + 'px ' +
+          Math.max(0, VH - rect.bottom).toFixed(1) + 'px ' +
+          Math.max(0, rect.left).toFixed(1) + 'px round 3px)';
+
+        detailOpen = false;
+        detailAnimating = true;
+        inkRunning = false;
+
+        cancelDetailAnims();
+
+        const dur = reducedMotion ? 1 : 850;
+        detailClipAnim = detailEl.animate(
+          [{ clipPath: clipStart }, { clipPath: clipEnd }],
+          { duration: dur, easing: 'cubic-bezier(.76,0,.18,1)', fill: 'both' }
+        );
+        detailClipAnim.onfinish = function () {
+          cancelDetailAnims();
+          detailEl.style.visibility = 'hidden';
+          detailEl.style.pointerEvents = 'none';
+          detailEl.style.clipPath = '';
+          detailEl.setAttribute('aria-hidden', 'true');
+          detailAnimating = false;
+        };
+      }
+
+      /* ================================================================
+         10. INTERACTIVE CRT TELECINE PREVIEW ("WATCH THE FILM")
+         ================================================================ */
+      function openCrt() {
+        const film = FILMS[detailFilmIdx];
+        crtOpen = true;
+        crtPlaying = true;
+        crtSeconds = 0;
+        crtGlitchBurst = 0.7;
+        crtPlayBtn.textContent = 'PAUSE';
+        crtPlayBtn.classList.add('on');
+        crtModeEl.textContent = '▶ PLAY SP';
+        crtTitleLbl.textContent = film.title.toUpperCase() + ' — TELECINE';
+        crtReelEl.textContent = 'VASARI ARCHIVE // ' + film.year + ' // ' + film.kanji;
+        crtStatusEl.textContent = 'Master VHS tape #' + String(detailFilmIdx + 1).padStart(2, '0') + ' — ' + film.genre + ' (' + film.min + 'm)';
+        crtPanel.classList.add('active');
+        crtPanel.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeCrt() {
+        crtOpen = false;
+        crtPanel.classList.remove('active');
+        crtPanel.setAttribute('aria-hidden', 'true');
+      }
+
+      function formatTimecode(sec) {
+        const totalFrames = Math.floor(sec * 24);
+        const ff = totalFrames % 24;
+        const ss = Math.floor(sec) % 60;
+        const mm = Math.floor(sec / 60) % 60;
+        const hh = Math.floor(sec / 3600);
+        return (
+          String(hh).padStart(2, '0') + ':' +
+          String(mm).padStart(2, '0') + ':' +
+          String(ss).padStart(2, '0') + ':' +
+          String(ff).padStart(2, '0')
+        );
+      }
+
+      function renderCrtFrame(dt, now) {
+        if (!crtOpen) return;
+        const film = FILMS[detailFilmIdx];
+
+        if (crtPlaying) {
+          crtSeconds += dt;
+        }
+        crtGlitchBurst = Math.max(0, crtGlitchBurst - dt * 1.4);
+        crtTcEl.textContent = formatTimecode(crtSeconds);
+
+        const cw = crtCanvas.width;
+        const ch = crtCanvas.height;
+
+        // Cobalt / ink / paper duotone backdrop
+        crtCtx.fillStyle = '#0D1326';
+        crtCtx.fillRect(0, 0, cw, ch);
+
+        const pulse = crtPlaying ? Math.sin(now * 0.0025) * 0.08 : 0;
+        const grad = crtCtx.createRadialGradient(cw * 0.5, ch * 0.48, 20, cw * 0.5, ch * 0.5, cw * 0.58);
+        grad.addColorStop(0, 'rgba(31, 63, 176, ' + (0.48 + pulse).toFixed(2) + ')');
+        grad.addColorStop(0.65, 'rgba(20, 26, 48, 0.72)');
+        grad.addColorStop(1, 'rgba(8, 10, 16, 0.96)');
+        crtCtx.fillStyle = grad;
+        crtCtx.fillRect(0, 0, cw, ch);
+
+        // Moving 16mm-style horizon & geometric frame bars
+        const jitterX = (crtGlitchBurst > 0.05 ? (Math.sin(now * 0.17) * 18 * crtGlitchBurst) : 0);
+        const jitterY = crtPlaying ? Math.sin(now * 0.04) * 1.1 : 0;
+
+        crtCtx.save();
+        crtCtx.translate(jitterX, jitterY);
+
+        // Aspect pillarbox & framing rule
+        crtCtx.strokeStyle = 'rgba(236, 232, 224, 0.35)';
+        crtCtx.lineWidth = 1;
+        crtCtx.strokeRect(48, 36, cw - 96, ch - 72);
+
+        // Animated horizon waves inspired by Vasari's coastal/desert cinematography
+        const phase = crtSeconds * 0.85;
+        crtCtx.strokeStyle = 'rgba(236, 232, 224, 0.22)';
+        for (let b = 0; b < 5; b++) {
+          crtCtx.beginPath();
+          const baseY = ch * 0.55 + b * 14;
+          for (let x = 48; x <= cw - 48; x += 12) {
+            const yOff = Math.sin(x * 0.015 + phase + b * 0.9) * (6 + b * 2);
+            if (x === 48) crtCtx.moveTo(x, baseY + yOff);
+            else crtCtx.lineTo(x, baseY + yOff);
+          }
+          crtCtx.stroke();
+        }
+
+        // Slate title typography
+        crtCtx.fillStyle = '#ECE8E0';
+        crtCtx.textAlign = 'center';
+        crtCtx.font = '600 11px "Inter Tight", sans-serif';
+        crtCtx.fillText('A LEON VASARI FILM  ·  ' + film.year + '  ·  ' + film.genre.toUpperCase(), cw / 2, ch * 0.34);
+
+        crtCtx.font = '600 34px "Inter Tight", sans-serif';
+        crtCtx.fillText(film.title, cw / 2, ch * 0.44);
+
+        crtCtx.fillStyle = 'rgba(236, 232, 224, 0.78)';
+        crtCtx.font = '500 13px "Inter Tight", "Noto Sans JP", sans-serif';
+        crtCtx.fillText(film.romaji + '  /  ' + film.kanji, cw / 2, ch * 0.51);
+
+        // Tracking snow bands on glitch burst or pause
+        const snowCount = crtGlitchBurst > 0.05 ? 32 : (crtPlaying ? 6 : 14);
+        for (let n = 0; n < snowCount; n++) {
+          crtSeed = (crtSeed * 16807) % 2147483647;
+          const sy = (crtSeed % ch);
+          const sw = 24 + ((crtSeed >> 3) % 160);
+          const sx = (crtSeed >> 5) % (cw - sw);
+          crtCtx.fillStyle = n % 3 === 0 ? 'rgba(236, 232, 224, 0.24)' : 'rgba(31, 63, 176, 0.35)';
+          crtCtx.fillRect(sx, sy, sw, 2);
+        }
+
+        if (crtGlitchBurst > 0.05) {
+          const tearY = ((now * 0.55) % ch);
+          crtCtx.fillStyle = 'rgba(236, 232, 224, 0.16)';
+          crtCtx.fillRect(0, tearY, cw, 16);
+          crtTrackEl.textContent = 'TRACKING ADJUST';
+        } else {
+          crtTrackEl.textContent = 'TRACKING AUTO';
+        }
+
+        crtCtx.restore();
+      }
+
+      crtClose.addEventListener('click', closeCrt);
+      crtPanel.addEventListener('click', function (e) {
+        if (e.target === crtPanel) closeCrt();
+      });
+      crtPlayBtn.addEventListener('click', function () {
+        crtPlaying = !crtPlaying;
+        crtPlayBtn.textContent = crtPlaying ? 'PAUSE' : 'PLAY';
+        crtPlayBtn.classList.toggle('on', crtPlaying);
+        crtModeEl.textContent = crtPlaying ? '▶ PLAY SP' : '❚❚ STILL';
+      });
+      crtGlitchBtn.addEventListener('click', function () {
+        crtGlitchBurst = 1.0;
+      });
+      crtRewBtn.addEventListener('click', function () {
+        crtSeconds = 0;
+        crtGlitchBurst = 0.85;
+      });
+
+      /* ================================================================
+         11. DRAWER (FILMS / ABOUT / JOURNAL)
+         ================================================================ */
+      function openDrawer(tab) {
+        if (detailOpen) closeDetail();
+        drawerOpen = true;
+        Object.keys(panelMap).forEach(function (k) {
+          panelMap[k].classList.toggle('active', k === tab);
+        });
+        drawerEl.scrollTop = 0;
+        drawerEl.classList.add('active');
+        drawerEl.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeDrawer() {
+        if (!drawerOpen) return;
+        drawerOpen = false;
+        drawerEl.classList.remove('active');
+        drawerEl.setAttribute('aria-hidden', 'true');
+      }
+
+      document.querySelectorAll('[data-drawer]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          openDrawer(btn.dataset.drawer);
+        });
+      });
+      drawerClose.addEventListener('click', closeDrawer);
+
+      /* ================================================================
+         12. NAVIGATION & INPUT HANDLERS
+         ================================================================ */
+      function stepShelf(delta) {
+        if (detailOpen || drawerOpen) return;
+        T = Math.round(T) + delta;
+      }
+
+      function jumpToFilm(filmIdx) {
+        const curIdx = ((Math.round(T) % 12) + 12) % 12;
+        let delta = filmIdx - curIdx;
+        if (delta > 6) delta -= 12;
+        if (delta < -6) delta += 12;
+        T = Math.round(T) + delta;
+      }
+
+      homeLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (crtOpen) closeCrt();
+        if (detailOpen) closeDetail();
+        if (drawerOpen) closeDrawer();
+        jumpToFilm(5);
+      });
+
+      btnPrev.addEventListener('click', function () { stepShelf(-1); });
+      btnNext.addEventListener('click', function () { stepShelf(1); });
+      playRingEl.addEventListener('click', function () {
+        if (!detailOpen && !drawerOpen && Math.abs(T - s) < 0.35) openDetail();
+      });
+      detailClose.addEventListener('click', closeDetail);
+      dWatchBtn.addEventListener('click', openCrt);
+
+      document.getElementById('link-fb').addEventListener('click', function (e) {
+        e.preventDefault();
+        openDrawer('journal');
+      });
+      document.getElementById('link-tw').addEventListener('click', function (e) {
+        e.preventDefault();
+        openDrawer('about');
+      });
+
+      // Keyboard navigation
+      window.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          if (crtOpen) { closeCrt(); return; }
+          if (detailOpen) { closeDetail(); return; }
+          if (drawerOpen) { closeDrawer(); return; }
+          return;
+        }
+        if (drawerOpen) return;
+        if (detailOpen) return;
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          stepShelf(-1);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          stepShelf(1);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          openDetail();
+        }
+      });
+
+      // Timeline click
+      tlHitEl.addEventListener('click', function (e) {
+        if (detailOpen || drawerOpen) return;
+        const rect = timelineEl.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / Math.max(1, rect.width)));
+        const targetYr = 1955 + ratio * 35;
+        let bestIdx = 0;
+        let bestDiff = Infinity;
+        for (let i = 0; i < 12; i++) {
+          const diff = Math.abs(FILMS[i].year - targetYr);
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            bestIdx = i;
+          }
+        }
+        jumpToFilm(bestIdx);
+      });
+
+      // Drag & Tap on Shelf
+      shelfEl.addEventListener('pointerdown', function (e) {
+        if (detailOpen || drawerOpen) return;
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
+        pointerDown = true;
+        dragging = false;
+        downX = e.clientX;
+        downY = e.clientY;
+        T0 = T;
+        const tapeNode = e.target.closest('.tape');
+        downTapeV = tapeNode ? Number(tapeNode.dataset.v) : -1;
+      });
+
+      window.addEventListener('pointermove', function (e) {
+        mx = e.clientX;
+        my = e.clientY;
+        if (!pointerSeen && e.pointerType !== 'touch') {
+          pointerSeen = true;
+          curX = mx;
+          curY = my;
+        }
+
+        // Track button and tape hover states
+        const overBtn = Boolean(e.target.closest('button, a, .timeline, .tl-hit'));
+        pointerBtnHover = overBtn;
+
+        if (!overBtn && !detailOpen && !drawerOpen && !dragging) {
+          const tapeNode = e.target.closest('.tape');
+          hoveredV = tapeNode ? Number(tapeNode.dataset.v) : -1;
+        } else {
+          hoveredV = -1;
+        }
+
+        if (!pointerDown) return;
+        const dx = e.clientX - downX;
+        const dy = e.clientY - downY;
+
+        if (!dragging && Math.abs(dx) > 5 && Math.abs(dx) >= Math.abs(dy) * 0.7) {
+          dragging = true;
+          try {
+            shelfEl.setPointerCapture(e.pointerId);
+          } catch (_) {}
+        }
+
+        if (dragging) {
+          T = T0 - dx / (ws + gap);
+        }
+      });
+
+      function endDrag(e) {
+        if (!pointerDown) return;
+        pointerDown = false;
+        if (dragging) {
+          dragging = false;
+          T = Math.round(T);
+          suppressClickUntil = performance.now() + 90;
+          try {
+            if (shelfEl.hasPointerCapture(e.pointerId)) {
+              shelfEl.releasePointerCapture(e.pointerId);
+            }
+          } catch (_) {}
+        } else if (!detailOpen && !drawerOpen && performance.now() > suppressClickUntil) {
+          if (downTapeV !== -1) {
+            const r = rel(downTapeV, s);
+            if (Math.abs(r) < 0.45) {
+              openDetail();
+            } else {
+              T = Math.round(s + r);
+            }
+          } else if (Math.abs(T - s) < 0.3 && Math.abs(mx - W / 2) < 0.55 * d && Math.abs(my - cyPx) < 0.55 * H) {
+            openDetail();
+          }
+        }
+        downTapeV = -1;
+      }
+
+      window.addEventListener('pointerup', endDrag);
+      window.addEventListener('pointercancel', endDrag);
+
+      // Wheel scrubbing (larger axis) with 160ms snap
+      window.addEventListener('wheel', function (e) {
+        if (detailOpen || drawerOpen) return;
+        e.preventDefault();
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        T += (delta / (ws + gap)) * 0.5;
+        if (wheelTimer) clearTimeout(wheelTimer);
+        wheelTimer = setTimeout(function () {
+          T = Math.round(T);
+        }, 160);
+      }, { passive: false });
+
+      window.addEventListener('resize', measureMetrics);
+
+      /* ================================================================
+         13. SINGLE requestAnimationFrame LOOP
+         ================================================================ */
+      let lastTime = performance.now();
+
+      function tick(now) {
+        const rawDt = (now - lastTime) * 0.001;
+        lastTime = now;
+        const dt = Math.min(0.05, Math.max(0.001, rawDt));
+
+        // 1. Shelf spring
+        if (reducedMotion) {
+          s = T;
+        } else {
+          const kSpring = dragging ? 18 : 5.2;
+          s += (T - s) * (1 - Math.exp(-kSpring * dt));
+          if (Math.abs(T - s) < 0.0002 && !dragging) s = T;
+        }
+
+        // Recenter after passing +-4 loops (4 * 36 = 144 keeps mod 12 and mod 36 exact)
+        if (Math.abs(s) > 144) {
+          const shift = Math.trunc(s / 36) * 36;
+          s -= shift;
+          T -= shift;
+        }
+
+        // 2. Active film caption transition
+        const newIdx = ((Math.round(s) % 12) + 12) % 12;
+        if (newIdx !== activeFilmIdx) {
+          let dir = Math.sign(T - s);
+          if (dir === 0) dir = 1;
+          activeFilmIdx = newIdx;
+          swapCaption(FILMS[activeFilmIdx], dir);
+        }
+
+        // 3. Render 3D shelf & measure cover hit
+        const onCover = renderShelf(dt);
+
+        // 4. Timeline year interpolation & 1989->1958 wrap jump
+        const fl = Math.floor(s);
+        const frac = s - fl;
+        const i0 = ((fl % 12) + 12) % 12;
+        const i1 = (i0 + 1) % 12;
+        const y0 = FILMS[i0].year;
+        const y1 = FILMS[i1].year;
+        const targetYear = (i0 === 11 && i1 === 0)
+          ? (frac < 0.5 ? y0 : y1)
+          : (y0 + (y1 - y0) * frac);
+
+        if (reducedMotion || Math.abs(targetYear - tlYear) > 6) {
+          tlYear = targetYear;
+        } else {
+          tlYear += (targetYear - tlYear) * (1 - Math.exp(-14 * dt));
+        }
+        tlDotEl.style.left = (((tlYear - 1955) / 35) * 100).toFixed(4) + '%';
+
+        // 5. Detail ink-bleed circles
+        if (inkRunning) {
+          let allDone = true;
+          const elapsed = now - inkStartTime;
+          for (let c = 0; c < INK_SPECS.length; c++) {
+            const delay = INK_SPECS[c][2];
+            const tNorm = Math.max(0, Math.min(1, (elapsed - 520 - delay) / 1250));
+            if (tNorm < 1) allDone = false;
+            const eased = 1 - Math.pow(1 - tNorm, 3);
+            inkCircles[c].setAttribute('r', (720 * eased).toFixed(1));
+          }
+          if (allDone) inkRunning = false;
+        }
+
+        // 6. Custom kinetic cursor smoothing & state
+        if (pointerSeen) {
+          const curAlpha = reducedMotion ? 1 : 1 - Math.exp(-16 * dt);
+          curX += (mx - curX) * curAlpha;
+          curY += (my - curY) * curAlpha;
+          curEl.style.transform = 'translate3d(' + curX.toFixed(1) + 'px,' + curY.toFixed(1) + 'px,0)';
+
+          const isBtn = pointerBtnHover;
+          const isOpen = !isBtn && onCover;
+          const isSpine = !isBtn && !isOpen && !detailOpen && !drawerOpen && hoveredV !== -1 && Math.abs(rel(hoveredV, s)) > 0.45;
+
+          curEl.classList.toggle('btn', isBtn);
+          curEl.classList.toggle('open', isOpen);
+          curEl.classList.toggle('spine', isSpine);
+        }
+
+        // 7. Interactive CRT canvas preview
+        renderCrtFrame(dt, now);
+
+        requestAnimationFrame(tick);
+      }
+
+      /* ================================================================
+         14. BOOT
+         ================================================================ */
+      measureMetrics();
+      setInitialCaption(FILMS[activeFilmIdx]);
+      renderShelf(0.016);
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

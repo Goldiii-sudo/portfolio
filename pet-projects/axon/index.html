@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AXON — Real-Time Rendering & Motion Research Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07070a;
+      --bg-elev: #0d0d14;
+      --bg-card: rgba(14, 14, 22, 0.72);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(167, 139, 250, 0.42);
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.62);
+      --text-muted: rgba(255, 255, 255, 0.38);
+      --violet: #7c3aed;
+      --violet-bright: #a78bfa;
+      --violet-glow: rgba(124, 58, 237, 0.28);
+      --font-sans: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Subtle technical grid overlay */
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.024) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(circle at 50% 35%, black 35%, transparent 90%);
+    }
+
+    /* Header / Nav */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      background: linear-gradient(to bottom, rgba(7, 7, 10, 0.88), rgba(7, 7, 10, 0));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border-accent);
+      background: radial-gradient(circle at 30% 30%, var(--violet-bright), var(--violet) 65%, #1e1038);
+      box-shadow: 0 0 18px var(--violet-glow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 50%;
+    }
+
+    .brand-name {
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 0.14em;
+    }
+
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--violet-bright);
+      padding: 2px 7px;
+      border: 1px solid rgba(167, 139, 250, 0.28);
+      border-radius: 4px;
+      background: rgba(124, 58, 237, 0.1);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    nav a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    nav a:hover {
+      color: var(--text);
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(13, 13, 20, 0.7);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--violet-bright);
+      box-shadow: 0 0 10px var(--violet-bright);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.8); }
+    }
+
+    /* Hero Section with Full-Viewport 3D Particle Sphere */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 680px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 110px 32px 36px;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    #axon-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+      z-index: 1;
+    }
+
+    #axon-canvas:active {
+      cursor: grabbing;
+    }
+
+    .hero-top {
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+      max-width: 780px;
+    }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      color: var(--violet-bright);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: var(--violet-bright);
+    }
+
+    h1 {
+      font-size: clamp(2.6rem, 6.2vw, 5.4rem);
+      font-weight: 600;
+      line-height: 0.96;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+
+    h1 span {
+      color: var(--violet-bright);
+      font-weight: 300;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 1.4vw, 1.18rem);
+      color: var(--text-dim);
+      max-width: 520px;
+      font-weight: 400;
+    }
+
+    /* Telemetry & Controls HUD */
+    .hero-bottom {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      pointer-events: none;
+    }
+
+    .telemetry-bar {
+      pointer-events: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      padding: 14px 20px;
+      background: rgba(11, 11, 17, 0.78);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .tele-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tele-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .tele-val {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .tele-val.accent {
+      color: var(--violet-bright);
+    }
+
+    .sphere-controls {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 18px;
+      background: rgba(11, 11, 17, 0.78);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .ctrl-group label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 96px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--violet-bright);
+      box-shadow: 0 0 10px var(--violet);
+      cursor: pointer;
+    }
+
+    .btn-ghost {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      background: rgba(124, 58, 237, 0.16);
+      border: 1px solid var(--border-accent);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-ghost:hover {
+      background: var(--violet);
+      box-shadow: 0 0 18px var(--violet-glow);
+    }
+
+    /* Experiments Section */
+    .section {
+      position: relative;
+      z-index: 2;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 96px 32px 120px;
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 44px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .section-desc {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+
+    /* Filter Tags */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+
+    .filter-btn.active {
+      color: var(--text);
+      background: rgba(124, 58, 237, 0.22);
+      border-color: var(--violet-bright);
+      box-shadow: 0 0 16px rgba(124, 58, 237, 0.24);
+    }
+
+    /* Experiment Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.28s ease, box-shadow 0.28s ease;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-accent);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 28px rgba(124, 58, 237, 0.14);
+    }
+
+    .card.hidden {
+      display: none;
+    }
+
+    .card-preview {
+      position: relative;
+      height: 200px;
+      background: #09090f;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .card-preview canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(7, 7, 10, 0.8);
+      border: 1px solid var(--border);
+      color: var(--violet-bright);
+      backdrop-filter: blur(6px);
+    }
+
+    .card-id {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 13.5px;
+      color: var(--text-dim);
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      margin-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .card-meta span strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 2;
+      border-top: 1px solid var(--border);
+      padding: 32px;
+      max-width: 1360px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+      }
+      nav {
+        display: none;
+      }
+      .hero {
+        padding: 96px 20px 24px;
+      }
+      .section {
+        padding: 64px 20px 88px;
+      }
+      .sphere-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-overlay"></div>
+
+  <header>
+    <a href="#" class="brand">
+      <div class="brand-mark"></div>
+      <span class="brand-name">AXON</span>
+      <span class="brand-tag">LAB_v2.4</span>
+    </a>
+    <nav>
+      <a href="#hero">CORE</a>
+      <a href="#experiments">EXPERIMENTS</a>
+      <a href="#telemetry">TELEMETRY</a>
+    </nav>
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      <span>RENDER_PIPELINE: ACTIVE</span>
+    </div>
+  </header>
+
+  <section class="hero" id="hero">
+    <canvas id="axon-canvas"></canvas>
+
+    <div class="hero-top">
+      <div class="eyebrow">Real-Time Rendering & Motion Research</div>
+      <h1>Kinetic <span>Field</span><br />Synthesis.</h1>
+      <p class="hero-sub">
+        Experimental WebGL, procedural shader architectures, and GPU-accelerated particle dynamics engineered for sub-millisecond visual feedback.
+      </p>
+    </div>
+
+    <div class="hero-bottom" id="telemetry">
+      <div class="telemetry-bar">
+        <div class="tele-item">
+          <span class="tele-label">Frame Rate</span>
+          <span class="tele-val accent" id="fps-val">60 FPS</span>
+        </div>
+        <div class="tele-item">
+          <span class="tele-label">Particles</span>
+          <span class="tele-val" id="count-val">1,800</span>
+        </div>
+        <div class="tele-item">
+          <span class="tele-label">Pointer Vector</span>
+          <span class="tele-val" id="vec-val">0.00, 0.00</span>
+        </div>
+        <div class="tele-item">
+          <span class="tele-label">Zoom Depth</span>
+          <span class="tele-val" id="zoom-val">1.00x</span>
+        </div>
+      </div>
+
+      <div class="sphere-controls">
+        <div class="ctrl-group">
+          <label for="turbulence">Turbulence</label>
+          <input type="range" id="turbulence" min="0" max="100" value="35" />
+        </div>
+        <div class="ctrl-group">
+          <label for="density">Density</label>
+          <input type="range" id="density" min="400" max="3200" step="200" value="1800" />
+        </div>
+        <button class="btn-ghost" id="pulse-btn">PULSE_WAVE</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="experiments">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Research Archive</h2>
+        <p class="section-desc">// Interactive procedural studies — hover any module to inspect real-time motion</p>
+      </div>
+      <div class="filters" id="filter-bar">
+        <button class="filter-btn active" data-filter="ALL">ALL</button>
+        <button class="filter-btn" data-filter="WEBGL">WEBGL</button>
+        <button class="filter-btn" data-filter="SHADERS">SHADERS</button>
+        <button class="filter-btn" data-filter="MOTION">MOTION</button>
+        <button class="filter-btn" data-filter="3D">3D</button>
+      </div>
+    </div>
+
+    <div class="grid" id="experiment-grid"></div>
+  </section>
+
+  <footer>
+    <span>AXON RESEARCH LAB // REAL-TIME GRAPHICS</span>
+    <span>ENGINE: CANVAS_3D_PROJECTION + PROCEDURAL_FIELD</span>
+  </footer>
+
+  <script>
+    (() => {
+      // =========================================================
+      // 1. HERO 3D PARTICLE SPHERE ENGINE
+      // =========================================================
+      const canvas = document.getElementById('axon-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const fpsEl = document.getElementById('fps-val');
+      const countEl = document.getElementById('count-val');
+      const vecEl = document.getElementById('vec-val');
+      const zoomEl = document.getElementById('zoom-val');
+
+      const turbInput = document.getElementById('turbulence');
+      const densityInput = document.getElementById('density');
+      const pulseBtn = document.getElementById('pulse-btn');
+
+      let width = 0;
+      let height = 0;
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      let particleCount = parseInt(densityInput.value, 10);
+      let turbulence = parseInt(turbInput.value, 10) / 100;
+      let pulseWave = 0;
+
+      // Camera & interaction state
+      let rotX = 0.25;
+      let rotY = 0;
+      let targetRotX = 0.25;
+      let targetRotY = 0;
+      let pointerX = 0;
+      let pointerY = 0;
+      let isDragging = false;
+      let lastDragX = 0;
+      let lastDragY = 0;
+      let zoom = 1.0;
+      let targetZoom = 1.0;
+
+      const particles = [];
+
+      function buildParticles(count) {
+        particles.length = 0;
+        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+        for (let i = 0; i < count; i++) {
+          const y = 1 - (i / (count - 1)) * 2;
+          const radiusAtY = Math.sqrt(1 - y * y);
+          const theta = goldenAngle * i;
+          const x = Math.cos(theta) * radiusAtY;
+          const z = Math.sin(theta) * radiusAtY;
+          particles.push({
+            bx: x,
+            by: y,
+            bz: z,
+            phase: Math.random() * Math.PI * 2,
+            size: 0.9 + Math.random() * 1.4,
+            violetMix: Math.random()
+          });
+        }
+        countEl.textContent = count.toLocaleString();
+      }
+
+      function resize() {
+        width = canvas.clientWidth;
+        height = canvas.clientHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+      buildParticles(particleCount);
+
+      // Pointer & Drag Controls
+      canvas.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        lastDragX = e.clientX;
+        lastDragY = e.clientY;
+      });
+
+      window.addEventListener('pointerup', () => {
+        isDragging = false;
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        const nx = (e.clientX / window.innerWidth) * 2 - 1;
+        const ny = (e.clientY / window.innerHeight) * 2 - 1;
+        pointerX = nx;
+        pointerY = ny;
+        vecEl.textContent = `${nx.toFixed(2)}, ${ny.toFixed(2)}`;
+
+        if (isDragging) {
+          const dx = e.clientX - lastDragX;
+          const dy = e.clientY - lastDragY;
+          targetRotY += dx * 0.006;
+          targetRotX += dy * 0.006;
+          lastDragX = e.clientX;
+          lastDragY = e.clientY;
+        }
+      });
+
+      canvas.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || Math.abs(e.deltaY) > 0) {
+          targetZoom = Math.max(0.65, Math.min(1.65, targetZoom - e.deltaY * 0.0006));
+          zoomEl.textContent = `${targetZoom.toFixed(2)}x`;
+        }
+      }, { passive: true });
+
+      turbInput.addEventListener('input', (e) => {
+        turbulence = parseInt(e.target.value, 10) / 100;
+      });
+
+      densityInput.addEventListener('input', (e) => {
+        particleCount = parseInt(e.target.value, 10);
+        buildParticles(particleCount);
+      });
+
+      pulseBtn.addEventListener('click', () => {
+        pulseWave = 1.0;
+      });
+
+      // FPS Telemetry
+      let frameCount = 0;
+      let lastFpsTime = performance.now();
+
+      function renderHero(now) {
+        requestAnimationFrame(renderHero);
+
+        frameCount++;
+        if (now - lastFpsTime >= 500) {
+          const fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+          fpsEl.textContent = `${fps} FPS`;
+          frameCount = 0;
+          lastFpsTime = now;
+        }
+
+        const t = now * 0.001;
+        pulseWave *= 0.94;
+
+        if (!isDragging) {
+          targetRotY += 0.0022;
+        }
+
+        rotX += (targetRotX + pointerY * 0.25 - rotX) * 0.06;
+        rotY += (targetRotY + pointerX * 0.25 - rotY) * 0.06;
+        zoom += (targetZoom - zoom) * 0.08;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Ambient radial core glow
+        const cx = width * 0.54;
+        const cy = height * 0.5;
+        const baseRadius = Math.min(width, height) * 0.29 * zoom;
+
+        const glow = ctx.createRadialGradient(cx, cy, baseRadius * 0.1, cx, cy, baseRadius * 1.45);
+        glow.addColorStop(0, 'rgba(124, 58, 237, 0.22)');
+        glow.addColorStop(0.5, 'rgba(124, 58, 237, 0.05)');
+        glow.addColorStop(1, 'rgba(7, 7, 10, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
+
+        const cosY = Math.cos(rotY);
+        const sinY = Math.sin(rotY);
+        const cosX = Math.cos(rotX);
+        const sinX = Math.sin(rotX);
+
+        const fov = 560;
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+
+          // Procedural harmonic displacement
+          const wave = Math.sin(t * 1.8 + p.phase + p.by * 4.0) * turbulence * 0.18;
+          const shock = Math.sin(p.by * 8.0 - t * 6.0) * pulseWave * 0.22;
+          const rScale = 1 + wave + shock;
+
+          const px = p.bx * rScale;
+          const py = p.by * rScale;
+          const pz = p.bz * rScale;
+
+          // Rotate Y
+          const x1 = px * cosY - pz * sinY;
+          const z1 = pz * cosY + px * sinY;
+          // Rotate X
+          const y2 = py * cosX - z1 * sinX;
+          const z2 = z1 * cosX + py * sinX;
+
+          const worldZ = z2 * baseRadius + fov;
+          if (worldZ <= 10) continue;
+
+          const scale = fov / worldZ;
+          const sx = cx + x1 * baseRadius * scale;
+          const sy = cy + y2 * baseRadius * scale;
+
+          const depthAlpha = Math.max(0.08, Math.min(1, (z2 + 1.1) * 0.55));
+          const pSize = p.size * scale * 0.95;
+
+          if (p.violetMix > 0.55) {
+            ctx.fillStyle = `rgba(167, 139, 250, ${depthAlpha.toFixed(3)})`;
+          } else {
+            ctx.fillStyle = `rgba(255, 255, 255, ${(depthAlpha * 0.85).toFixed(3)})`;
+          }
+
+          ctx.beginPath();
+          ctx.arc(sx, sy, pSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      requestAnimationFrame(renderHero);
+
+      // =========================================================
+      // 2. RESEARCH EXPERIMENT CARDS + HOVER PREVIEWS
+      // =========================================================
+      const experiments = [
+        {
+          id: 'EXP_01',
+          tag: 'WEBGL',
+          title: 'Curl-Noise Advection',
+          desc: 'Divergence-free 3D velocity field driving 64k instanced ribbons with temporal trail decay.',
+          metric: '0.42 ms',
+          mode: 'ribbons'
+        },
+        {
+          id: 'EXP_02',
+          tag: 'SHADERS',
+          title: 'Chromatic Fresnel Lattice',
+          desc: 'Spectral dispersion pass computed in fragment space using analytical surface normals.',
+          metric: '120 FPS',
+          mode: 'lattice'
+        },
+        {
+          id: 'EXP_03',
+          tag: 'MOTION',
+          title: 'Spring-Damped Kinematics',
+          desc: 'Sub-frame Verlet integration solver for zero-latency pointer-coupled UI physics.',
+          metric: '0.18 ms',
+          mode: 'springs'
+        },
+        {
+          id: 'EXP_04',
+          tag: '3D',
+          title: 'Signed Distance Morphing',
+          desc: 'Smooth-min boolean blending between implicit polyhedra under directional rim lighting.',
+          metric: '0.65 ms',
+          mode: 'sdf'
+        },
+        {
+          id: 'EXP_05',
+          tag: 'WEBGL',
+          title: 'Instanced Voxel Terrain',
+          desc: 'GPU frustum-culled heightfield mesh with real-time hydraulic erosion keyframes.',
+          metric: '90 FPS',
+          mode: 'terrain'
+        },
+        {
+          id: 'EXP_06',
+          tag: 'SHADERS',
+          title: 'Reaction-Diffusion Core',
+          desc: 'Gray-Scott differential solver ping-ponging across 16-bit floating-point framebuffers.',
+          metric: '0.51 ms',
+          mode: 'waves'
+        }
+      ];
+
+      const grid = document.getElementById('experiment-grid');
+      const cardControllers = [];
+
+      experiments.forEach((exp) => {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.dataset.tag = exp.tag;
+
+        card.innerHTML = `
+          <div class="card-preview">
+            <canvas></canvas>
+            <span class="card-badge">${exp.tag}</span>
+            <span class="card-id">${exp.id}</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">${exp.title}</h3>
+            <p class="card-desc">${exp.desc}</p>
+            <div class="card-meta">
+              <span>EXEC_TIME: <strong>${exp.metric}</strong></span>
+              <span>STATUS: <strong>VERIFIED</strong></span>
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+
+        const c = card.querySelector('canvas');
+        const cCtx = c.getContext('2d');
+        let hovered = false;
+        let phase = Math.random() * 10;
+
+        card.addEventListener('mouseenter', () => { hovered = true; });
+        card.addEventListener('mouseleave', () => { hovered = false; });
+
+        function drawPreview(time) {
+          const w = c.clientWidth;
+          const h = c.clientHeight;
+          if (c.width !== w || c.height !== h) {
+            c.width = w;
+            c.height = h;
+          }
+          cCtx.clearRect(0, 0, w, h);
+
+          const speed = hovered ? 0.0028 : 0.0007;
+          phase += speed * 16;
+
+          cCtx.strokeStyle = hovered ? 'rgba(167, 139, 250, 0.85)' : 'rgba(167, 139, 250, 0.35)';
+          cCtx.lineWidth = hovered ? 1.5 : 1.0;
+
+          if (exp.mode === 'ribbons' || exp.mode === 'waves') {
+            for (let row = 0; row < 7; row++) {
+              cCtx.beginPath();
+              for (let x = 0; x <= w; x += 8) {
+                const y = h * 0.5 + Math.sin(x * 0.025 + phase + row * 0.55) * (hovered ? 34 : 20) + (row - 3) * 12;
+                if (x === 0) cCtx.moveTo(x, y);
+                else cCtx.lineTo(x, y);
+              }
+              cCtx.stroke();
+            }
+          } else if (exp.mode === 'lattice' || exp.mode === 'sdf') {
+            const cx = w * 0.5;
+            const cy = h * 0.5;
+            const rings = 6;
+            for (let r = 1; r <= rings; r++) {
+              const rad = r * 14 + Math.sin(phase + r) * (hovered ? 6 : 2);
+              cCtx.beginPath();
+              cCtx.arc(cx, cy, Math.max(4, rad), 0, Math.PI * 2);
+              cCtx.stroke();
+            }
+          } else {
+            const cols = 12;
+            const step = w / cols;
+            for (let i = 0; i <= cols; i++) {
+              const x = i * step;
+              const offset = Math.sin(phase + i * 0.5) * (hovered ? 28 : 12);
+              cCtx.beginPath();
+              cCtx.moveTo(x, h * 0.5 - offset);
+              cCtx.lineTo(x, h * 0.5 + offset);
+              cCtx.stroke();
+            }
+          }
+        }
+
+        cardControllers.push({ drawPreview });
+      });
+
+      function animateCards(now) {
+        for (let i = 0; i < cardControllers.length; i++) {
+          cardControllers[i].drawPreview(now);
+        }
+        requestAnimationFrame(animateCards);
+      }
+      requestAnimationFrame(animateCards);
+
+      // Filter Logic
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.card');
+
+      filterBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const filter = btn.dataset.filter;
+
+          cards.forEach((card) => {
+            if (filter === 'ALL' || card.dataset.tag === filter) {
+              card.classList.remove('hidden');
+            } else {
+              card.classList.add('hidden');
+            }
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
