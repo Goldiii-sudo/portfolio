@@ -569,9 +569,9 @@ const SCRIPT = [
     '<a href="./monolith/index.html" target="_blank" rel="noopener">kinetic-monolith</a> <span class="dim">· react + webgl2 portfolio</span>   <span class="tag">[dev]</span>',
     '<a href="#art">ascii-orb</a>        <span class="dim">· the thing on the right →</span>   <span class="tag">[live]</span>']],
   ['echo $CONTACTS', [
-    '<span class="key">github</span><a href="#">@your-handle</a>',
-    '<span class="key">telegram</span><a href="#">@your-handle</a>',
-    '<span class="key">email</span><a href="mailto:hello@example.com">hello@example.com</a>']],
+    '<span class="key">github</span><a href="https://github.com/Goldiii-sudo" target="_blank" rel="noopener">@Goldiii-sudo</a>',
+    '<span class="key">telegram</span><a href="https://t.me/Itsbanana2" target="_blank" rel="noopener">@Itsbanana2</a>',
+    '<span class="key">email</span><a href="mailto:archi2228@outlook.com">archi2228@outlook.com</a>']],
 ];
 const FOOTER = ['// site under construction. come back tomorrow. or in 2077.','// type something'];
 const IDLE = ['still here? good.','the cursor is doing all the work today.','try typing "help".','i\'d offer you tea but i\'m html.','somewhere a cat just knocked a cup off a table.','press any key. any of them. i\'m not picky.','still loading your motivation...','okay, i\'ll just talk to myself then.'];
@@ -579,7 +579,7 @@ const CMDS = {
   help: ()=>['available: help, about, projects, contacts, joke, clear, ls, cat, whoami, date, echo, history, ping, coffee, cowsay, theme, matrix, hack, exit','some commands are hidden. good luck.'],
   about: ()=>['see above. scroll is free.'],
   projects: ()=>['sun-timeline  · raw webgl2 solar evolution [live]','medusa-jf4    · three.js 3d field simulator [live]','vhs-archive   · 3d curved shelf + svg ink [live]','honey-jar     · hiven 4-scene pinned story [live]','print-gallery · zestwell 3d corridor + bag [live]','axon-lab      · realtime particle-sphere lab [live]'],
-  contacts: ()=>['email works best: hello@example.com'],
+  contacts: ()=>['email works best: archi2228@outlook.com'],
   joke: ()=>[['why do programmers prefer dark mode? because light attracts bugs.','there are 10 kinds of people: those who get binary and those who don\'t.','i would tell you a udp joke, but you might not get it.'][Math.random()*3|0]],
   sudo: a=>a.join(' ')==='make me a sandwich'?['okay. 🥪 (it\'s ascii, don\'t eat the screen)']:['nice try. this incident will be reported to nobody.'],
   clear: ()=>{out.innerHTML='';return []},
